@@ -1,0 +1,40 @@
+#!/bin/bash
+
+set -euo pipefail
+
+SB_CONFIG_FILE="/etc/secureboot.conf"
+
+
+if [ -r "$SB_CONFIG_FILE" ]; then
+  . "$SB_CONFIG_FILE"
+else
+  echo "Failed to read the secureboot configuration file '$SB_CONFIG_FILE'"
+  exit 1
+fi
+
+while getopts ":gesvlh" opt; do
+  case "$opt" in
+    g)
+      echo "g"
+      ;;
+    h)
+      echo
+      echo " -g  : Generate the UEFI Secure Boot keys"
+      echo " -e  : Enrolling secure boot keys in UEFI firmware"
+      echo " -s  : Signing the boot loader with secure boot keys"
+      echo " -v  : Verify the signed boot loader"
+      echo " -l  : List all the secure boot keys enrolled in firmware"
+      exit 0
+      ;;
+    \?)
+      printf '%s\n' "ERROR: Invalid option: '$OPTARG'" >&2
+      echo
+      echo " -g  : Generate the UEFI Secure Boot keys"
+      echo " -e  : Enrolling secure boot keys in UEFI firmware"
+      echo " -s  : Signing the boot loader with secure boot keys"
+      echo " -v  : Verify the signed boot loader"
+      echo " -l  : List all the secure boot keys enrolled in firmware"
+      exit 1
+      ;;
+  esac
+done
