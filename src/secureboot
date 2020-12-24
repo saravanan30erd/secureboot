@@ -22,6 +22,9 @@ while getopts ":gesvlh" opt; do
     e)
       enroll_uefi_keys;
       ;;
+    s)
+      sign_uefi_keys;
+      ;;
     h)
       echo
       echo " -g  : Generate the UEFI Secure Boot keys"
@@ -75,5 +78,27 @@ generate_uefi_keys() {
   cert-to-efi-sig-list -g $GUID db.crt db.esl
 
   chmod 0400 *.{key,auth}
-  echo "UEFI Secure Boot keys are created under '$UEFI_KEYS_DIR'"
+  echo "UEFI Secure Boot keys are created under '$UEFI_KEYS_DIR'."
+}
+
+enroll_uefi_keys() {
+  cd "$UEFI_KEYS_DIR"
+
+  echo "Enrolling Secure Boot keys in UEFI firmware"
+  efi-updatevar -e -f KEK.esl KEK
+  efi-updatevar -e -f db.esl db
+  efi-updatevar -f PK.auth PK
+  echo "Secure Boot keys in '$UEFI_KEYS_DIR' are registered."
+}
+
+sign_uefi_keys() {
+  cd "$UEFI_KEYS_DIR"
+
+  echo "Signing GRUB boot loader with UEFI Secure Boot keys"
+
+  grub-mkconfig -o "$BOOT_DIR/grub/grub.cfg"
+  grub-install --target=x86_64-efi --boot-directory="$BOOT_DIR" --efi-directory="$EFI_DIR" --bootloader-id="$UEFI_ID_GRUB"
+
+  sbsign --key db.key --cert db.crt --output "$EFI_DIR/$EFI_PATH_GRUB" "$EFI_DIR/$EFI_PATH_GRUB"
+  echo "GRUB boot loader is signed with UEFI Secure Boot keys."
 }
