@@ -12,10 +12,15 @@ else
   exit 1
 fi
 
+mkdir -p "$UEFI_KEYS_DIR"
+
 while getopts ":gesvlh" opt; do
   case "$opt" in
     g)
-      echo "g"
+      generate_uefi_keys;
+      ;;
+    e)
+      enroll_uefi_keys;
       ;;
     h)
       echo
@@ -38,3 +43,37 @@ while getopts ":gesvlh" opt; do
       ;;
   esac
 done
+
+
+generate_uefi_keys() {
+  cd "$UEFI_KEYS_DIR"
+
+  GUID="$(uuidgen --random)"
+  echo "$GUID" > guid.txt
+
+  echo "Generating the UEFI Secure Boot keys"
+  read -p "Enter a Common Name: " NAME
+
+  echo "Create Platform key..."
+  openssl req -newkey rsa:4096 -nodes -keyout PK.key -new -x509 -sha256 -days 3650 \
+              -subj "/CN=$NAME Platform Key/" -out PK.crt
+  openssl x509 -outform DER -in PK.crt -out PK.cer
+  cert-to-efi-sig-list -g $GUID PK.crt PK.esl
+  sign-efi-sig-list -k PK.key -c PK.crt PK PK.esl PK.auth
+  sign-efi-sig-list -c PK.crt -k PK.key PK /dev/null PK_null.auth
+
+  echo "Create Key Exchange key..."
+  openssl req -newkey rsa:4096 -nodes -keyout KEK.key -new -x509 -sha256 -days 3650 \
+              -subj "/CN=$NAME Key Exchange Key/" -out KEK.crt
+  openssl x509 -outform DER -in KEK.crt -out KEK.cer
+  cert-to-efi-sig-list -g $GUID KEK.crt KEK.esl
+
+  echo "Create signature database key..."
+  openssl req -newkey rsa:4096 -nodes -keyout db.key -new -x509 -sha256 -days 3650 \
+              -subj "/CN=$NAME Signature Database key/" -out db.crt
+  openssl x509 -outform DER -in db.crt -out db.cer
+  cert-to-efi-sig-list -g $GUID db.crt db.esl
+
+  chmod 0400 *.{key,auth}
+  echo "UEFI Secure Boot keys are created under '$UEFI_KEYS_DIR'"
+}
