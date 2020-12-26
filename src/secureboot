@@ -55,17 +55,17 @@ sign_uefi_keys() {
   grub-mkconfig -o "$BOOT_DIR/grub/grub.cfg"
   grub-install --target=x86_64-efi --boot-directory="$BOOT_DIR" --efi-directory="$EFI_DIR" --bootloader-id="$UEFI_ID_GRUB"
 
-  sbsign --key db.key --cert db.crt --output "$EFI_DIR/$EFI_PATH_GRUB" "$EFI_DIR/$EFI_PATH_GRUB"
+  sbsign --key db.key --cert db.crt --output "$EFI_DIR/$UEFI_PATH_GRUB" "$EFI_DIR/$UEFI_PATH_GRUB"
   echo "GRUB boot loader is signed with UEFI Secure Boot keys."
 }
 
 verify_signatures() {
   echo "List the signatures in boot loader"
-  sbverify --list "$EFI_DIR/$EFI_PATH_GRUB"
+  sbverify --list "$EFI_DIR/$UEFI_PATH_GRUB"
 
   echo "Verifying the signature with UEFI keys"
   cd "$UEFI_KEYS_DIR"
-  sbverify --cert db.crt "$EFI_DIR/$EFI_PATH_GRUB"
+  sbverify --cert db.crt "$EFI_DIR/$UEFI_PATH_GRUB"
 }
 
 list_uefi_keys() {
