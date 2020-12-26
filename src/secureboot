@@ -25,6 +25,12 @@ while getopts ":gesvlh" opt; do
     s)
       sign_uefi_keys;
       ;;
+    v)
+      verify_signatures;
+      ;;
+    l)
+      list_uefi_keys;
+      ;;
     h)
       echo
       echo " -g  : Generate the UEFI Secure Boot keys"
@@ -101,4 +107,18 @@ sign_uefi_keys() {
 
   sbsign --key db.key --cert db.crt --output "$EFI_DIR/$EFI_PATH_GRUB" "$EFI_DIR/$EFI_PATH_GRUB"
   echo "GRUB boot loader is signed with UEFI Secure Boot keys."
+}
+
+verify_signatures() {
+  echo "List the signatures in boot loader"
+  sbverify --list "$EFI_DIR/$EFI_PATH_GRUB"
+
+  echo "Verifying the signature with UEFI keys"
+  cd "$UEFI_KEYS_DIR"
+  sbverify --cert db.crt "$EFI_DIR/$EFI_PATH_GRUB"
+}
+
+list_uefi_keys() {
+  echo "Listing the secure boot keys enrolled in firmware"
+  efi-readvar
 }
