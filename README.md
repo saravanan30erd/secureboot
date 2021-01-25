@@ -1,6 +1,6 @@
-# Enable Secure Boot
+# Enable Secure Boot - UEFI
 
-1. Go to BIOS setup, and enable secure boot.
+1. Go to BIOS/UEFI setup, and enable secure boot.
 ```
 Settings > Secure Boot > Secure Boot Enable
 ```
@@ -25,8 +25,8 @@ pacman -S efitools sbsigntools
 
 6. Install the secureboot utility,
 ```
-git clone https://github.com/saravanan30erd/uefi-secureboot
-cd uefi-secureboot
+git clone https://github.com/saravanan30erd/secureboot
+cd secureboot
 make install
 ```
 
