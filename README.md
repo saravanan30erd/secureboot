@@ -32,20 +32,20 @@ make install
 
 7. Generate the UEFI secure boot keys.
 ```
-secureboot -g
+secureboot generate-keys
 ```
 
 8. Enrolling secure boot keys in UEFI firmware.
 ```
-secureboot -e
+secureboot enroll-keys
 ```
 
 9. Signing the boot loader with secure boot keys.
 ```
-secureboot -s
+secureboot sign-keys
 ```
 
 10. Verify the signed boot loader.
 ```
-secureboot -v
+secureboot verify-bootloader
 ```
