@@ -5,6 +5,8 @@ set -euo pipefail
 ## Functions
 
 generate_uefi_keys() {
+  mkdir -p "$UEFI_KEYS_DIR"
+
   cd "$UEFI_KEYS_DIR"
 
   GUID="$(uuidgen --random)"
@@ -73,13 +75,13 @@ list_uefi_keys() {
   efi-readvar
 }
 
-configure_tpm_for_boot_partition() {
+encrypt_partition_tpm2() {
 
   echo "Create random key file"
   dd if=/dev/random of=/etc/secret.bin bs=32 count=1
 
-  echo "Add the key from file to boot partition"
-  cryptsetup luksAddKey /dev/sda2 /etc/secret.bin
+  echo "Add the key from file to '$TPM2_DEV' partition"
+  cryptsetup luksAddKey $TPM2_DEV /etc/secret.bin
 
   echo "Note that you may need to reset your TPM from the BIOS setup page"
   sleep 2
@@ -135,46 +137,34 @@ else
   exit 1
 fi
 
-mkdir -p "$UEFI_KEYS_DIR"
 
-while getopts ":gesvlph" opt; do
-  case "$opt" in
-    g)
-      generate_uefi_keys;
-      ;;
-    e)
-      enroll_uefi_keys;
-      ;;
-    s)
-      sign_uefi_keys;
-      ;;
-    v)
-      verify_signatures;
-      ;;
-    l)
-      list_uefi_keys;
-      ;;
-    p)
-      configure_tpm_for_boot_partition;
-      ;;
-    h)
-      echo
-      echo " -g  : Generate the UEFI Secure Boot keys"
-      echo " -e  : Enrolling secure boot keys in UEFI firmware"
-      echo " -s  : Signing the boot loader with secure boot keys"
-      echo " -v  : Verify the signed boot loader"
-      echo " -l  : List all the secure boot keys enrolled in firmware"
-      exit 0
-      ;;
-    \?)
-      printf '%s\n' "ERROR: Invalid option: '$OPTARG'" >&2
-      echo
-      echo " -g  : Generate the UEFI Secure Boot keys"
-      echo " -e  : Enrolling secure boot keys in UEFI firmware"
-      echo " -s  : Signing the boot loader with secure boot keys"
-      echo " -v  : Verify the signed boot loader"
-      echo " -l  : List all the secure boot keys enrolled in firmware"
-      exit 1
-      ;;
-  esac
-done
+case "$1" in
+  generate-keys)
+    generate_uefi_keys;
+    ;;
+  enroll-keys)
+    enroll_uefi_keys;
+    ;;
+  sign-keys)
+    sign_uefi_keys;
+    ;;
+  verify-bootloader)
+    verify_signatures;
+    ;;
+  list-keys)
+    list_uefi_keys;
+    ;;
+  tpm2-luks)
+    encrypt_partition_tpm2;
+    ;;
+  *)
+    echo
+    echo "commands:"
+    echo "  generate-keys       Generate the UEFI Secure Boot keys"
+    echo "  enroll-keys         Enrolling secure boot keys in UEFI firmware"
+    echo "  sign-keys           Signing the boot loader with secure boot keys"
+    echo "  verify-bootloader   Verify the signed boot loader"
+    echo "  list-keys           List all the secure boot keys enrolled in UEFI firmware"
+    echo "  tpm2-luks           Encrypt partition using TPM 2.0"
+    ;;
+esac
