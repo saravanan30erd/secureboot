@@ -13,7 +13,6 @@ generate_uefi_keys() {
   echo "$GUID" > guid.txt
 
   echo "Generating the UEFI Secure Boot keys"
-  read -p "Enter a Common Name: " NAME
 
   echo "Create Platform key..."
   openssl req -newkey rsa:4096 -nodes -keyout PK.key -new -x509 -sha256 -days 3650 \
