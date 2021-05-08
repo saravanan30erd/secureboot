@@ -75,56 +75,6 @@ list_uefi_keys() {
   efi-readvar
 }
 
-encrypt_partition_tpm2() {
-
-  echo "Create random key file"
-  dd if=/dev/random of=/etc/secret.bin bs=32 count=1
-
-  echo "Add the key from file to '$TPM2_DEV' partition"
-  cryptsetup luksAddKey $TPM2_DEV /etc/secret.bin
-
-  echo "Note that you may need to reset your TPM from the BIOS setup page"
-  sleep 2
-
-  echo "Add key to TPM"
-
-  echo "Run tpm2_createpolicy"
-  tpm2_createpolicy --policy-pcr -l sha1:0,2,4,7 -L policy.digest
-  echo "======="
-  sleep 2
-  echo "Run tpm2_createprimary"
-  tpm2_createprimary -C e -g sha1 -G rsa -c primary.context
-  echo "======="
-  sleep 2
-  echo "Run tpm2_create"
-  tpm2_create -g sha256 -u obj.pub -r obj.priv -C primary.context -L policy.digest -a "noda|adminwithpolicy|fixedparent|fixedtpm" -i /etc/secret.bin
-  echo "======="
-  sleep 2
-  echo "Run tpm2_load"
-  tpm2_load -C primary.context -u obj.pub -r obj.priv -c load.context
-  echo "======="
-  sleep 2
-  echo "Run tpm2_evictcontrol"
-  tpm2_evictcontrol -C o -c load.context 0x81000000
-  echo "======="
-  sleep 2
-  rm load.context obj.priv obj.pub policy.digest primary.context
-
-  echo "check whether the key is successfully added in TPM"
-  tpm2_getcap handles-persistent
-  tpm2_readpublic -c 0x81000000
-
-  echo "print the key stored in TPM"
-  tpm2_unseal -c 0x81000000 -p pcr:sha1:0,2,4,7 -o /tmp/secret
-
-  echo "Compare the created key and TPM key"
-  echo "=================================="
-  sha1sum /etc/secret.bin
-  sha1sum /tmp/secret
-  echo "=================================="
-
-}
-
 ## Main
 
 SB_CONFIG_FILE="/etc/secureboot.conf"
@@ -154,9 +104,6 @@ case "$1" in
   list-keys)
     list_uefi_keys;
     ;;
-  tpm2-luks)
-    encrypt_partition_tpm2;
-    ;;
   *)
     echo
     echo "commands:"
@@ -165,6 +112,5 @@ case "$1" in
     echo "  sign-keys           Signing the boot loader with secure boot keys"
     echo "  verify-bootloader   Verify the signed boot loader"
     echo "  list-keys           List all the secure boot keys enrolled in UEFI firmware"
-    echo "  tpm2-luks           Encrypt partition using TPM 2.0"
     ;;
 esac
