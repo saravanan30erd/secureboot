@@ -71,7 +71,7 @@ verify_signatures() {
 }
 
 list_uefi_keys() {
-  echo "Listing the secure boot keys enrolled in firmware"
+  echo "List the secure boot keys enrolled in firmware"
   efi-readvar
 }
 
