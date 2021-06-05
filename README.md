@@ -22,6 +22,31 @@ Set Admin Password for BIOS.
 Settings > Security > Admin Password
 ```
 
+Disable Allow Non-Admin Password Changes
+```
+Settings > Security > Password Change > Disable Allow Non-Admin Password Changes
+```
+
+Disable UEFI Capsule Firmware Updates
+```
+Settings > Security > UEFI Capsule Firmware Updates > Uncheck Enable UEFI Capsule Firmware Updates
+```
+
+Disable OROM Keyboard Access
+```
+Settings > Security > OROM Keyboard Access > Disabled
+```
+
+Enable Admin setup Lockout
+```
+Settings > Security > Admin setup Lockout > Check Enable Admin setup Lockout
+```
+
+Enable Master Password Lockout
+```
+Settings > Security > Master Password Lockout > Check Enable Master Password Lockout
+```
+
 Exit BIOS and boot into the system.
 
 ## Install
