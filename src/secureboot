@@ -59,15 +59,25 @@ sign_uefi_keys() {
   
   sbsign --key db.key --cert db.crt --output "$EFI_DIR/$UEFI_PATH_GRUB" "$EFI_DIR/$UEFI_PATH_GRUB"
   echo "GRUB boot loader is signed with UEFI Secure Boot keys."
+  
+  sbsign --key db.key --cert db.crt --output /boot/vmlinuz-linux /boot/vmlinuz-linux
+  echo "Linux kernel is signed with UEFI Secure Boot keys."
 }
 
 verify_signatures() {
+  cd "$UEFI_KEYS_DIR"
+
   echo "List the signatures in boot loader"
   sbverify --list "$EFI_DIR/$UEFI_PATH_GRUB"
 
-  echo "Verifying the signature with UEFI keys"
-  cd "$UEFI_KEYS_DIR"
+  echo "Verifying the signature of boot loader with UEFI keys"
   sbverify --cert db.crt "$EFI_DIR/$UEFI_PATH_GRUB"
+  
+  echo "List the signatures in kernel"
+  sbverify --list /boot/vmlinuz-linux
+  
+  echo "Verifying the signature of kernel with UEFI keys"
+  sbverify --cert db.crt /boot/vmlinuz-linux
 }
 
 list_uefi_keys() {
